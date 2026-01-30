@@ -59,5 +59,9 @@
     "option.PuzzleSolverMode.cases.Single.label": "Single Run",
     "option.PuzzleSolverMode.cases.Loop.label": "Loop",
     "option.PuzzleSolverMode.cases.DryRun.label": "Demo Only",
-    "contact.file": "misc/locales/CONTACT/CONTACT.en_us.md"
+    "contact.file": "misc/locales/CONTACT/CONTACT.en_us.md",
+    "task.ClaimSimulationRewards.label": "📦Claim Simulation Rewards",
+    "task.ClaimSimulationRewards.description": "Please start within the Simulation Space menu",
+    "task.ClaimSimulationRewards.error_not_found": "Simulation UI not detected. Please switch manually.",
+    "task.ClaimSimulationRewards.success_finished": "Simulation  rewards claimed successfully."
 }
