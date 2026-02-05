@@ -7,6 +7,11 @@
             "description": "$task.VisitFriends.description",
             "option": [
                 "PriorStealVegetables"
+            ],
+            "controller": [
+                "Win32",
+                "Win32-Front",
+                "Win32-Window"
             ]
         }
     ],
@@ -20,6 +25,12 @@
                 {
                     "name": "Yes",
                     "pipeline_override": {
+                        "PriorStealGate": {
+                            "enabled": true
+                        },
+                        "PriorStealGateClueCheck": {
+                            "enabled": true
+                        },
                         "ProductionAssistCheckPriorSteal": {
                             "enabled": true
                         },
@@ -32,10 +43,22 @@
                         "SkipConfirmBackToFriendList": {
                             "enabled": true
                         },
+                        "WaitOpenTerminalAssistStealVeg": {
+                            "enabled": true
+                        },
+                        "WaitOpenTerminalAssist": {
+                            "enabled": false
+                        },
+                        "VisitorTerminalClueExchangeFirst": {
+                            "enabled": true
+                        },
                         "VisitorTerminalSwipeFacilityList": {
                             "enabled": true
                         },
                         "VisitorTerminalAssistGrowthChamber": {
+                            "enabled": true
+                        },
+                        "VisitorTerminalCloseSeedDialog": {
                             "enabled": true
                         },
                         "VisitorTerminalAssist": {
@@ -46,6 +69,12 @@
                 {
                     "name": "No",
                     "pipeline_override": {
+                        "PriorStealGate": {
+                            "enabled": false
+                        },
+                        "PriorStealGateClueCheck": {
+                            "enabled": false
+                        },
                         "ProductionAssistCheckPriorSteal": {
                             "enabled": false
                         },
@@ -58,10 +87,22 @@
                         "SkipConfirmBackToFriendList": {
                             "enabled": false
                         },
+                        "WaitOpenTerminalAssistStealVeg": {
+                            "enabled": false
+                        },
+                        "WaitOpenTerminalAssist": {
+                            "enabled": true
+                        },
+                        "VisitorTerminalClueExchangeFirst": {
+                            "enabled": false
+                        },
                         "VisitorTerminalSwipeFacilityList": {
                             "enabled": false
                         },
                         "VisitorTerminalAssistGrowthChamber": {
+                            "enabled": false
+                        },
+                        "VisitorTerminalCloseSeedDialog": {
                             "enabled": false
                         },
                         "VisitorTerminalAssist": {

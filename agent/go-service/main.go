@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 
 	"github.com/MaaXYZ/MaaEnd/agent/go-service/aspectratio"
+	"github.com/MaaXYZ/MaaEnd/agent/go-service/creditshopping"
 	"github.com/MaaXYZ/MaaEnd/agent/go-service/hdrcheck"
 	"github.com/MaaXYZ/MaaEnd/agent/go-service/importtask"
 	"github.com/MaaXYZ/MaaEnd/agent/go-service/itemtransfer"
@@ -75,11 +76,12 @@ func main() {
 func registerAll() {
 	// Register all custom components from each package
 	realtime.Register()
+  mapservice.Register()
 	importtask.Register()
 	resell.Register()
 	puzzle.Register()
 	itemtransfer.Register()
-	mapservice.Register()
+	creditshopping.Register()
 
 	// Register aspect ratio checker (uses TaskerSink, not custom action/recognition)
 	aspectratio.Register()
