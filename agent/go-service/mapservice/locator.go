@@ -74,7 +74,6 @@ func NewMapLocator(zoneConfigs map[string]string, debug bool, debugDir string) (
 		isTierMap := !strings.HasSuffix(id, "_Base")
 		if isTierMap {
 			log.Info().Str("zone", id).Msg("Applying spotlight mask to Tier map...")
-			ApplySpotlightEffect(fullRGBA, 45) // Tier地图亮度阈值
 		} else {
 			// 透明化
 			log.Info().Str("zone", id).Msg("Applying Void Filter (Transparent to Base map...")
