@@ -368,6 +368,19 @@ func MatchProbe(img *image.RGBA, probe *TemplateProbe, step int, probeStep int, 
 		return 0, 0, 0
 	}
 
+	abs := func(n int) int {
+		if n < 0 {
+			return -n
+		}
+		return n
+	}
+
+	// 色调容忍度
+	const ChromaThreshold = 45
+
+	// 惩罚权重
+	const ChromaWeight = 15
+
 	matchRect := func(startX, endX, startY, endY int) (int, int, int) {
 		localMinSAD := math.MaxInt64
 		localX, localY := 0, 0
@@ -391,20 +404,25 @@ func MatchProbe(img *image.RGBA, probe *TemplateProbe, step int, probeStep int, 
 					g := int(imgPix[off+1])
 					b := int(imgPix[off+2])
 
-					diffR := r - p.R
-					if diffR < 0 {
-						diffR = -diffR
-					}
-					diffG := g - p.G
-					if diffG < 0 {
-						diffG = -diffG
-					}
-					diffB := b - p.B
-					if diffB < 0 {
-						diffB = -diffB
+					diffR := abs(r - p.R)
+					diffG := abs(g - p.G)
+					diffB := abs(b - p.B)
+					baseDiff := diffR + diffG + diffB
+
+					pRG := p.R - p.G
+					pBG := p.B - p.G
+					mRG := r - g
+					mBG := b - g
+
+					chromaDiff := abs(pRG-mRG) + abs(pBG-mBG)
+
+					// 非线性惩罚
+					penalty := 0
+					if chromaDiff > ChromaThreshold {
+						penalty = (chromaDiff - ChromaThreshold) * ChromaWeight
 					}
 
-					currentSAD += diffR + diffG + diffB
+					currentSAD += baseDiff + penalty
 
 					if currentSAD > localMinSAD {
 						break
