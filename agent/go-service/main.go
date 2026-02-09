@@ -4,7 +4,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/MaaXYZ/MaaEnd/agent/go-service/AutomaticCharacterTutorial"
+	"github.com/MaaXYZ/MaaEnd/agent/go-service/automaticcharactertutorial"
 	"github.com/MaaXYZ/MaaEnd/agent/go-service/importtask"
 	puzzle "github.com/MaaXYZ/MaaEnd/agent/go-service/puzzle-solver"
 	"github.com/MaaXYZ/MaaEnd/agent/go-service/realtime"
@@ -70,7 +70,7 @@ func registerAll() {
 	importtask.Register()
 	resell.Register()
 	puzzle.Register()
-	AutomaticCharacterTutorial.Register() // Register the new AutomaticCharacterTutorial components
+	automaticcharactertutorial.Register() // Register the new AutomaticCharacterTutorial components
 
 	log.Info().Msg("Registered custom recognition and actions")
 }

@@ -1,4 +1,4 @@
-package AutomaticCharacterTutorial
+package automaticcharactertutorial
 
 import (
 	"fmt"

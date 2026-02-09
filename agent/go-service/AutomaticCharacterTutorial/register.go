@@ -1,4 +1,4 @@
-package AutomaticCharacterTutorial
+package automaticcharactertutorial
 
 import (
 	"github.com/MaaXYZ/maa-framework-go/v3"
