@@ -19,39 +19,37 @@ import (
 // 终结技识别：检测顶部提示图标是否与下方终结技图标匹配，并识别对应按键
 type UltimateSkillRecognition struct{}
 
+// UltRecognitionParams defines the structure for custom parameters
+type UltRecognitionParams struct {
+	TopROI    []int   `json:"top_roi"`
+	SkillROI  []int   `json:"skill_roi"`
+	UltROIs   [][]int `json:"ult_rois"`
+	KeyROIs   [][]int `json:"key_rois"`
+	Threshold float64 `json:"threshold"`
+}
+
 // Run implements the custom recognition logic
 func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognitionArg) (*maa.CustomRecognitionResult, bool) {
-	// 1. Define parameters (Hardcoded as per request)
-	params := struct {
-		TopROI    []int
-		SkillROI  []int // New precise ROI for ultimate icon
-		UltROIs   [][]int
-		KeyROIs   [][]int
-		Threshold float64
-	}{
-		TopROI:   []int{617, 49, 45, 66},
-		SkillROI: []int{626, 57, 28, 28}, // Precise ROI for icon content
-		UltROIs: [][]int{
-			// Adjusted ROIs:
-			// Original small size: ~20x22.
-			// We expanded them to 80x80 before, which might be too big if noise is present.
-			// Let's reduce to 40x40 centered on the original points.
-			// 0: Center (1241, 594) -> {1221, 574, 40, 40}
-			{1221, 574, 40, 40},
-			// 1: Center (1179, 594) -> {1159, 574, 40, 40}
-			{1159, 574, 40, 40},
-			// 2: Center (1117, 594) -> {1097, 574, 40, 40}
-			{1097, 574, 40, 40},
-			// 3: Center (1055, 594) -> {1035, 574, 40, 40}
-			{1035, 574, 40, 40},
-		},
-		KeyROIs: [][]int{
-			{1233, 670, 20, 20},
-			{1169, 670, 20, 20},
-			{1105, 670, 20, 20},
-			{1041, 670, 21, 20},
-		},
-		Threshold: 0.1, //0.1测试
+	// 1. Parse Parameters from Pipeline JSON
+	var params UltRecognitionParams
+	if err := json.Unmarshal([]byte(arg.CustomRecognitionParam), &params); err != nil {
+		log.Error().Err(err).Msg("Failed to parse custom recognition params")
+		return nil, false
+	}
+
+	// Validate essential parameters
+	if len(params.SkillROI) < 4 || len(params.UltROIs) == 0 {
+		log.Error().Msg("Invalid recognition parameters: missing ROI definitions")
+		return nil, false
+	}
+
+	// Default threshold if not set
+	if params.Threshold == 0 {
+		params.Threshold = 0.1
+	}
+	// Normalize threshold if > 1.0
+	if params.Threshold > 1.0 {
+		params.Threshold = params.Threshold / 100.0
 	}
 
 	img := arg.Img
@@ -180,7 +178,10 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	templatePath, fullTemplatePath, err := createTempTemplate(params.SkillROI)
 	if err != nil {
 		log.Warn().Err(err).Msg("Failed to create ultimate template from SkillROI, trying TopROI")
-		templatePath, fullTemplatePath, err = createTempTemplate(params.TopROI)
+		// Only try TopROI if it is valid
+		if len(params.TopROI) >= 4 {
+			templatePath, fullTemplatePath, err = createTempTemplate(params.TopROI)
+		}
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create ultimate template")
 			return nil, false

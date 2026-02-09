@@ -1,16 +1,4 @@
 {
-  "$__mpe_config_AutomaticCharacterTutorial": {
-    "$__mpe_code": {
-      "prefix": "",
-      "savedViewport": {
-        "x": -1946,
-        "y": 576,
-        "zoom": 0.8
-      },
-      "filename": "AutomaticCharacterTutorial",
-      "version": "v1.0.3"
-    }
-  },
   "Teach_ClickFilter": {
     "doc": "第三步：点击干员图标",
     "recognition": {
@@ -38,12 +26,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 1941,
-        "y": 142
-      }
-    },
     "next": [
       "Teach_ClickFilter1"
     ]
@@ -65,12 +47,6 @@
           52,
           51
         ]
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 1956,
-        "y": 506
       }
     }
   },
@@ -104,12 +80,6 @@
           72,
           30
         ]
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 2237,
-        "y": -253
       }
     },
     "next": [
@@ -147,12 +117,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 2311,
-        "y": 155
-      }
-    },
     "next": [
       "Teach_ClickFilter3"
     ]
@@ -176,12 +140,6 @@
           77,
           28
         ]
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 2511,
-        "y": -267
       }
     },
     "next": [
@@ -214,12 +172,6 @@
         "duration": 6000
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 3380,
-        "y": -372
-      }
-    },
     "next": [
       "前进2"
     ]
@@ -245,12 +197,6 @@
       "type": "LongPress",
       "param": {
         "duration": 5000
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 4352,
-        "y": 425
       }
     },
     "next": [
@@ -284,12 +230,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 5094,
-        "y": 53
-      }
-    },
     "next": [
       "中间节点3"
     ]
@@ -302,12 +242,6 @@
       "type": "DoNothing",
       "param": {
         "timeout": 5000
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 3125,
-        "y": -178
       }
     },
     "next": [
@@ -337,12 +271,6 @@
         "timeout": 1000
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 1580,
-        "y": -7
-      }
-    },
     "next": [
       "Teach_search",
       "Teach_search1"
@@ -364,12 +292,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 1896,
-        "y": -260
-      }
-    },
     "next": [
       "Teach_ClickFilter"
     ]
@@ -386,20 +308,89 @@
       "Node.Action.Failed": "未能执行战技操作"
     },
     "doc": "外部战技匹配",
-    "recognition": "Custom",
-    "custom_recognition": "DynamicMatchRecognition",
-    "roi": [
-      617,
-      49,
-      45,
-      66
-    ],
-    "action": "Custom",
-    "custom_action": "DynamicMatchAction",
-    "$__mpe_code": {
-      "position": {
-        "x": 4717,
-        "y": 7
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "DynamicMatchRecognition",
+        "roi": [
+          617,
+          49,
+          45,
+          66
+        ],
+        "custom_recognition_param": {
+          "top_roi": [
+            617,
+            49,
+            45,
+            66
+          ],
+          "skill_roi": [
+            629,
+            60,
+            22,
+            22
+          ],
+          "bottom_rois": [
+            [
+              1224,
+              623,
+              40,
+              40
+            ],
+            [
+              1160,
+              623,
+              40,
+              40
+            ],
+            [
+              1097,
+              624,
+              40,
+              40
+            ],
+            [
+              1034,
+              624,
+              40,
+              40
+            ]
+          ],
+          "key_rois": [
+            [
+              1233,
+              670,
+              20,
+              20
+            ],
+            [
+              1169,
+              670,
+              20,
+              20
+            ],
+            [
+              1105,
+              670,
+              20,
+              20
+            ],
+            [
+              1041,
+              670,
+              21,
+              20
+            ]
+          ],
+          "threshold": 0.25
+        }
+      }
+    },
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "DynamicMatchAction"
       }
     },
     "next": [
@@ -434,12 +425,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 4595,
-        "y": -315
-      }
-    },
     "next": [
       "点击操作"
     ]
@@ -455,12 +440,6 @@
           35,
           36
         ]
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 4911,
-        "y": -596
       }
     },
     "next": [
@@ -480,12 +459,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 4898,
-        "y": -256
-      }
-    },
     "next": [
       "点击操作3"
     ]
@@ -501,12 +474,6 @@
           35,
           36
         ]
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 5245,
-        "y": -587
       }
     },
     "next": [
@@ -541,12 +508,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 5199,
-        "y": -290
-      }
-    },
     "next": [
       "中间节点3"
     ]
@@ -561,12 +522,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 2715,
-        "y": 154
-      }
-    },
     "next": [
       "前进1"
     ]
@@ -578,12 +533,6 @@
       "param": {
         "key": 87,
         "duration": 600
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 2826,
-        "y": -192
       }
     },
     "next": [
@@ -618,12 +567,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 4608,
-        "y": -624
-      }
-    },
     "next": [
       "中间节点3"
     ]
@@ -646,12 +589,6 @@
     "action": {
       "type": "Click",
       "param": {}
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 3810,
-        "y": 86
-      }
     },
     "next": [
       "点击离开"
@@ -684,12 +621,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 3579,
-        "y": 377
-      }
-    },
     "next": [
       "等待节点"
     ]
@@ -697,75 +628,83 @@
   "终结技匹配": {
     "timeout": 25000,
     "post_delay": 500,
-    "recognition": "Custom",
-    "custom_recognition": "UltimateSkillRecognition",
-    "custom_recognition_param": {
-      "top_roi": [
-        617,
-        49,
-        45,
-        66
-      ],
-      "ult_rois": [
-        [
-          1231,
-          583,
-          20,
-          22
-        ],
-        [
-          1169,
-          583,
-          20,
-          22
-        ],
-        [
-          1107,
-          583,
-          20,
-          22
-        ],
-        [
-          1045,
-          583,
-          20,
-          22
-        ]
-      ],
-      "key_rois": [
-        [
-          1235,
-          672,
-          16,
-          16
-        ],
-        [
-          1171,
-          672,
-          17,
-          16
-        ],
-        [
-          1107,
-          672,
-          17,
-          16
-        ],
-        [
-          1043,
-          672,
-          17,
-          16
-        ]
-      ],
-      "threshold": 0.5
+    "recognition": {
+      "type": "Custom",
+      "param": {
+        "custom_recognition": "UltimateSkillRecognition",
+        "custom_recognition_param": {
+          "top_roi": [
+            617,
+            49,
+            45,
+            66
+          ],
+          "skill_roi": [
+            626,
+            57,
+            28,
+            28
+          ],
+          "ult_rois": [
+            [
+              1221,
+              574,
+              40,
+              40
+            ],
+            [
+              1159,
+              574,
+              40,
+              40
+            ],
+            [
+              1097,
+              574,
+              40,
+              40
+            ],
+            [
+              1035,
+              574,
+              40,
+              40
+            ]
+          ],
+          "key_rois": [
+            [
+              1233,
+              670,
+              20,
+              20
+            ],
+            [
+              1169,
+              670,
+              20,
+              20
+            ],
+            [
+              1105,
+              670,
+              20,
+              20
+            ],
+            [
+              1041,
+              670,
+              21,
+              20
+            ]
+          ],
+          "threshold": 0.1
+        }
+      }
     },
-    "action": "Custom",
-    "custom_action": "UltimateSkillAction",
-    "$__mpe_code": {
-      "position": {
-        "x": 5081,
-        "y": 484
+    "action": {
+      "type": "Custom",
+      "param": {
+        "custom_action": "UltimateSkillAction"
       }
     },
     "next": [
@@ -781,12 +720,6 @@
         "key": 87
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 3671,
-        "y": -343
-      }
-    },
     "next": [
       "中间节点2"
     ]
@@ -796,12 +729,6 @@
       "type": "DoNothing",
       "param": {
         "timeout": 15000
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 3178,
-        "y": 888
       }
     },
     "next": [
@@ -835,12 +762,6 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 2418,
-        "y": 1006
-      }
-    },
     "next": [
       "滑动2"
     ]
@@ -848,7 +769,6 @@
   "点击第一个": {
     "recognition": {
       "type": "ColorMatch",
-      "pre_delay": 3000,
       "param": {
         "lower": [
           [
@@ -884,17 +804,12 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 1426,
-        "y": 874
-      }
-    },
     "next": [
       "AutomaticCharacterTutorial"
     ]
   },
   "滑动2": {
+    "post_delay": 6000,
     "action": {
       "type": "Scroll",
       "param": {
@@ -907,23 +822,11 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 1913,
-        "y": 933
-      }
-    },
     "next": [
       "点击第一个"
     ]
   },
   "中间节点2": {
-    "$__mpe_code": {
-      "position": {
-        "x": 3998,
-        "y": -274
-      }
-    },
     "next": [
       "识别确定1",
       "连携技",
@@ -935,41 +838,11 @@
     ]
   },
   "中间节点3": {
-    "$__mpe_code": {
-      "position": {
-        "x": 5481,
-        "y": -21
-      }
-    },
-    "next": [
-      "中间节点4"
-    ]
-  },
-  "前进4": {
-    "action": {
-      "type": "LongPressKey",
-      "param": {
-        "duration": 200,
-        "key": 87
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 5849,
-        "y": -104
-      }
-    },
     "next": [
       "中间节点4"
     ]
   },
   "中间节点4": {
-    "$__mpe_code": {
-      "position": {
-        "x": 4888,
-        "y": -1087
-      }
-    },
     "next": [
       "中间节点2"
     ]
@@ -991,30 +864,9 @@
         ]
       }
     },
-    "$__mpe_code": {
-      "position": {
-        "x": 4762,
-        "y": 536
-      }
-    },
     "next": [
       "终结技匹配"
     ]
-  },
-  "前进3": {
-    "action": {
-      "type": "LongPressKey",
-      "param": {
-        "duration": 200,
-        "key": 87
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 5849,
-        "y": -104
-      }
-    }
   },
   "战技检测节点": {
     "pre_delay": 300,
@@ -1032,12 +884,6 @@
           "战技",
           "战."
         ]
-      }
-    },
-    "$__mpe_code": {
-      "position": {
-        "x": 4410,
-        "y": 39
       }
     },
     "next": [

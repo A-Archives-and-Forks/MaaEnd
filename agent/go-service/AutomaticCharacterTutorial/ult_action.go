@@ -14,39 +14,43 @@ type UltimateSkillAction struct{}
 
 // Run implements the custom action logic
 func (a *UltimateSkillAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bool {
-	// 1. Get detail
 	detailStr := arg.RecognitionDetail.DetailJson
-	var detail struct {
+
+	// Define a unified structure to handle both flat and nested JSON
+	type ActionDetail struct {
 		Index  int `json:"index"`
 		KeyNum int `json:"key_num"`
 	}
 
-	// Try direct unmarshal first
-	if err := json.Unmarshal([]byte(detailStr), &detail); err != nil {
-		log.Error().Err(err).Str("detail", detailStr).Msg("Failed to parse ult action detail")
+	var targetDetail ActionDetail
+	var parsed bool
+
+	// 1. Try to parse as nested structure (standard Framework result)
+	var nested struct {
+		Best struct {
+			Detail ActionDetail `json:"detail"`
+		} `json:"best"`
+	}
+	if err := json.Unmarshal([]byte(detailStr), &nested); err == nil && nested.Best.Detail.KeyNum != 0 {
+		targetDetail = nested.Best.Detail
+		parsed = true
+	}
+
+	// 2. If nested parsing failed or empty, try flat structure (custom result)
+	if !parsed {
+		if err := json.Unmarshal([]byte(detailStr), &targetDetail); err == nil {
+			parsed = true
+		}
+	}
+
+	if !parsed {
+		log.Error().Str("detail", detailStr).Msg("Failed to parse ult action detail")
 		return false
 	}
 
-	// Wrapper handling (just in case)
-	if detail.KeyNum == 0 {
-		var wrapped struct {
-			Best struct {
-				Detail struct {
-					Index  int `json:"index"`
-					KeyNum int `json:"key_num"`
-				} `json:"detail"`
-			} `json:"best"`
-		}
-		if err := json.Unmarshal([]byte(detailStr), &wrapped); err == nil {
-			if wrapped.Best.Detail.KeyNum != 0 {
-				detail = wrapped.Best.Detail
-			}
-		}
-	}
-
-	if detail.KeyNum >= 1 && detail.KeyNum <= 4 {
-		keyCode := 48 + detail.KeyNum
-		log.Info().Int("keyNum", detail.KeyNum).Int("keyCode", keyCode).Msg("Long pressing ultimate skill key (0.3s)")
+	if targetDetail.KeyNum >= 1 && targetDetail.KeyNum <= 4 {
+		keyCode := 48 + targetDetail.KeyNum
+		log.Info().Int("keyNum", targetDetail.KeyNum).Int("keyCode", keyCode).Msg("Long pressing ultimate skill key (0.3s)")
 
 		ctrl := ctx.GetTasker().GetController()
 
@@ -62,6 +66,6 @@ func (a *UltimateSkillAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) bo
 		return true
 	}
 
-	log.Warn().Int("index", detail.Index).Int("keyNum", detail.KeyNum).Msg("No valid key number for ult, skipping action")
+	log.Warn().Int("index", targetDetail.Index).Int("keyNum", targetDetail.KeyNum).Msg("No valid key number for ult, skipping action")
 	return false
 }

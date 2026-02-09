@@ -18,50 +18,35 @@ import (
 // DynamicMatchRecognition implements logic to match a skill icon and recognize the corresponding key
 type DynamicMatchRecognition struct{}
 
+// RecognitionParams defines the structure for custom parameters
+type RecognitionParams struct {
+	TopROI     []int     `json:"top_roi"`
+	SkillROI   []int     `json:"skill_roi"`
+	BottomROIs [][]int   `json:"bottom_rois"`
+	KeyROIs    [][]int   `json:"key_rois"`
+	Threshold  float64   `json:"threshold"`
+}
+
 // Run implements the custom recognition logic
 func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognitionArg) (*maa.CustomRecognitionResult, bool) {
-	// 1. Define parameters (Hardcoded as per request)
-	params := struct {
-		TopROI     []int
-		SkillROI   []int
-		BottomROIs [][]int
-		KeyROIs    [][]int
-		Threshold  float64
-	}{
-		TopROI: []int{617, 49, 45, 66},
-		// SkillROI: Modified from {626, 57, 28, 28} to {629, 60, 22, 22}
-		// Reason: Crop the center 22x22 pixels to remove edge glow/background noise.
-		// The top icon has a different glowing background than the bottom icon.
-		// Using the full 28x28 area includes this noise, causing false positives (higher scores on wrong icons).
-		// A smaller, cleaner center crop improves the signal-to-noise ratio for matching.
-		SkillROI: []int{629, 60, 22, 22},
-		BottomROIs: [][]int{
-			// Expanded ROIs to ensure template fits and allows matching movement
-			// Reduced size from 60x60 to 40x40 to reduce background noise influence
-			// Centers kept roughly same:
-			// 0: Center (1244, 643) -> {1224, 623, 40, 40}
-			{1224, 623, 40, 40},
-			// 1: Center (1180, 643) -> {1160, 623, 40, 40}
-			{1160, 623, 40, 40},
-			// 2: Center (1117, 644) -> {1097, 624, 40, 40}
-			{1097, 624, 40, 40},
-			// 3: Center (1054, 644) -> {1034, 624, 40, 40}
-			{1034, 624, 40, 40},
-		},
-		KeyROIs: [][]int{
-			{1233, 670, 20, 20},
-			{1169, 670, 20, 20},
-			{1105, 670, 20, 20},
-			{1041, 670, 21, 20},
-		},
-		Threshold: 0.25, // Updated based on user feedback
+	// 1. Parse Parameters from Pipeline JSON
+	var params RecognitionParams
+	if err := json.Unmarshal([]byte(arg.CustomRecognitionParam), &params); err != nil {
+		log.Error().Err(err).Msg("Failed to parse custom recognition params")
+		return nil, false
 	}
 
-	// Default threshold
+	// Validate essential parameters
+	if len(params.SkillROI) < 4 || len(params.BottomROIs) == 0 {
+		log.Error().Msg("Invalid recognition parameters: missing ROI definitions")
+		return nil, false
+	}
+
+	// Default threshold if not set
 	if params.Threshold == 0 {
 		params.Threshold = 0.7
 	}
-	// If user provided > 1.0 (e.g. 60 or 80), normalize it to 0.0-1.0
+	// Normalize threshold if > 1.0
 	if params.Threshold > 1.0 {
 		params.Threshold = params.Threshold / 100.0
 	}
@@ -81,34 +66,15 @@ func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogniti
 		return nil, false
 	}
 
-	// Helper: Binarize image for Template (White Icon, Green Background)
-	// Threshold: 100 (out of 255) - Lowered to capture more details
-	binarizeTemplate := func(src image.Image) image.Image {
+	// Helper: Binarize image (White Icon, Black Background)
+	binarize := func(src image.Image) image.Image {
 		bounds := src.Bounds()
 		dst := image.NewRGBA(bounds)
-		threshold := uint32(25700) // 100/255 * 65535 ≈ 25700
+		thresh := uint32(25700) // 100/255 * 65535 ≈ 25700
 		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
 			for x := bounds.Min.X; x < bounds.Max.X; x++ {
 				r, g, b, _ := src.At(x, y).RGBA()
-				if r > threshold && g > threshold && b > threshold {
-					dst.Set(x, y, color.White)
-				} else {
-					dst.Set(x, y, color.Black)
-				}
-			}
-		}
-		return dst
-	}
-
-	// Helper: Binarize image for Search (White Icon, Black Background)
-	binarizeSearch := func(src image.Image) image.Image {
-		bounds := src.Bounds()
-		dst := image.NewRGBA(bounds)
-		threshold := uint32(25700) // 100/255 * 65535 ≈ 25700
-		for y := bounds.Min.Y; y < bounds.Max.Y; y++ {
-			for x := bounds.Min.X; x < bounds.Max.X; x++ {
-				r, g, b, _ := src.At(x, y).RGBA()
-				if r > threshold && g > threshold && b > threshold {
+				if r > thresh && g > thresh && b > thresh {
 					dst.Set(x, y, color.White)
 				} else {
 					dst.Set(x, y, color.Black)
@@ -132,7 +98,7 @@ func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogniti
 		}
 
 		cropImg := subImager.SubImage(rect)
-		binarizedImg := binarizeTemplate(cropImg) // Use Template Binarization
+		binarizedImg := binarize(cropImg)
 
 		relDir := "AutomaticCharacterTutorial"
 		// Use unique filename to avoid caching issues
@@ -158,7 +124,10 @@ func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogniti
 	templatePath, fullTemplatePath, err := createTempTemplate(params.SkillROI)
 	if err != nil {
 		log.Warn().Err(err).Msg("Failed to create template from SkillROI, trying TopROI")
-		templatePath, fullTemplatePath, err = createTempTemplate(params.TopROI)
+		// Only try TopROI if it is valid
+		if len(params.TopROI) >= 4 {
+			templatePath, fullTemplatePath, err = createTempTemplate(params.TopROI)
+		}
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create template from both SkillROI and TopROI")
 			return nil, false
@@ -169,7 +138,7 @@ func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogniti
 
 	// 3. Match Template against BottomROIs
 	// Pre-process the search image to match the template style (White on Black)
-	searchImg := binarizeSearch(img)
+	searchImg := binarize(img)
 
 	bestIdx := -1
 	maxScore := -1.0
@@ -310,11 +279,6 @@ func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogniti
 	}
 
 	// 5. Return Result
-	// Pass the bestIdx and recognized keyNum to Action
-	// Note: We return Hit=true even if OCR failed, because we found the skill icon.
-	// Action will decide what to do if keyNum is missing (though instructions say "click ocr'd key").
-	// If OCR failed, keyNum will be -1.
-
 	detailBytes, _ := json.Marshal(map[string]any{
 		"index":   bestIdx,
 		"score":   maxScore,
