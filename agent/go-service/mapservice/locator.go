@@ -244,6 +244,19 @@ func (m *MapLocator) Locate(ctx *maa.Context, minimap image.Image) (*MapPosition
 		return allResults[i].AvgDiff < allResults[j].AvgDiff
 	})
 
+	for i, res := range allResults {
+		if i >= 5 {
+			break
+		}
+		log.Debug().
+			Int("rank", i+1).
+			Str("zone", res.ZoneID).
+			Float64("avgDiff", res.AvgDiff).
+			Int("x", res.X).
+			Int("y", res.Y).
+			Msg("[MapLocate] Global Search Rank")
+	}
+
 	// 相对置信度判断
 	var winner raceResult
 	useWinner := false
