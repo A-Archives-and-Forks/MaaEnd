@@ -18,11 +18,13 @@ type DynamicMatchRecognition struct{}
 // RecognitionParams defines the structure for custom parameters
 // RecognitionParams 定义自定义参数的结构
 type RecognitionParams struct {
-	TopROI     []int   `json:"top_roi"`
-	SkillROI   []int   `json:"skill_roi"`
-	BottomROIs [][]int `json:"bottom_rois"`
-	KeyROIs    [][]int `json:"key_rois"`
-	Threshold  float64 `json:"threshold"`
+	TopROI      []int   `json:"top_roi"`
+	SkillROI    []int   `json:"skill_roi"`
+	BottomROIs  [][]int `json:"bottom_rois"`
+	KeyROIs     [][]int `json:"key_rois"`
+	Threshold   float64 `json:"threshold"`
+	Recognition string  `json:"recognition"`
+	Method      int     `json:"method"`
 }
 
 // Run implements the custom recognition logic
@@ -52,6 +54,15 @@ func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogniti
 	// 归一化阈值
 	if params.Threshold > 1.0 {
 		params.Threshold = params.Threshold / 100.0
+	}
+
+	// Default recognition method if not set
+	// 设置默认识别方法
+	if params.Recognition == "" {
+		params.Recognition = "TemplateMatch"
+	}
+	if params.Method == 0 {
+		params.Method = 5 // TM_CCOEFF_NORMED
 	}
 
 	img := arg.Img
@@ -153,11 +164,11 @@ func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogniti
 		taskName := "DynamicMatch_" + strconv.Itoa(i)
 		tmParam := map[string]any{
 			taskName: map[string]any{
-				"recognition": "TemplateMatch",
+				"recognition": params.Recognition,
 				"template":    templatePath,
 				"threshold":   params.Threshold,
 				"roi":         bottomROI,
-				"method":      5, // TM_CCOEFF_NORMED
+				"method":      params.Method,
 			},
 		}
 
@@ -221,11 +232,11 @@ func (r *DynamicMatchRecognition) Run(ctx *maa.Context, arg *maa.CustomRecogniti
 				taskName := "DynamicMatch_Half_" + strconv.Itoa(i)
 				tmParam := map[string]any{
 					taskName: map[string]any{
-						"recognition": "TemplateMatch",
+						"recognition": params.Recognition,
 						"template":    halfTemplatePath,
 						"threshold":   params.Threshold,
 						"roi":         bottomROI,
-						"method":      5, // TM_CCOEFF_NORMED
+						"method":      params.Method,
 					},
 				}
 

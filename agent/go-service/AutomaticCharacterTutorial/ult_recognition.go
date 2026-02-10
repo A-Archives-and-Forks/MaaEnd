@@ -19,11 +19,13 @@ type UltimateSkillRecognition struct{}
 // UltRecognitionParams defines the structure for custom parameters
 // UltRecognitionParams 定义自定义参数的结构
 type UltRecognitionParams struct {
-	TopROI    []int   `json:"top_roi"`
-	SkillROI  []int   `json:"skill_roi"`
-	UltROIs   [][]int `json:"ult_rois"`
-	KeyROIs   [][]int `json:"key_rois"`
-	Threshold float64 `json:"threshold"`
+	TopROI      []int   `json:"top_roi"`
+	SkillROI    []int   `json:"skill_roi"`
+	UltROIs     [][]int `json:"ult_rois"`
+	KeyROIs     [][]int `json:"key_rois"`
+	Threshold   float64 `json:"threshold"`
+	Recognition string  `json:"recognition"`
+	Method      int     `json:"method"`
 }
 
 // Run implements the custom recognition logic
@@ -53,6 +55,15 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	// 归一化阈值
 	if params.Threshold > 1.0 {
 		params.Threshold = params.Threshold / 100.0
+	}
+
+	// Default recognition method if not set
+	// 设置默认识别方法
+	if params.Recognition == "" {
+		params.Recognition = "TemplateMatch"
+	}
+	if params.Method == 0 {
+		params.Method = 5 // TM_CCOEFF_NORMED
 	}
 
 	img := arg.Img
@@ -199,11 +210,11 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 		taskName := "UltMatch_" + strconv.Itoa(i)
 		tmParam := map[string]any{
 			taskName: map[string]any{
-				"recognition": "TemplateMatch",
+				"recognition": params.Recognition,
 				"template":    templatePath,
 				"threshold":   params.Threshold,
 				"roi":         ultROI,
-				"method":      5, // TM_CCOEFF_NORMED
+				"method":      params.Method,
 			},
 		}
 
@@ -224,13 +235,6 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 				// 优先读取 Best
 				if detail.Best != nil {
 					score = detail.Best.Score
-				} else if len(detail.All) > 0 {
-					// 如果 Best 为空 (Hit=false)，尝试从 All 中找最大值
-					for _, item := range detail.All {
-						if item.Score > score {
-							score = item.Score
-						}
-					}
 				}
 			}
 		}
@@ -246,7 +250,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	// Check if the best match is good enough
 	// 检查最佳匹配是否足够好
 	if maxScore < params.Threshold {
-		log.Info().Float64("maxScore", maxScore).Msg("No matching ultimate icon found")
+		log.Debug().Float64("maxScore", maxScore).Msg("No matching ultimate icon found")
 		return nil, false
 	}
 
