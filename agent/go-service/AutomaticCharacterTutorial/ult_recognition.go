@@ -5,21 +5,19 @@ import (
 	"fmt"
 	"image"
 	"image/color"
-	"image/png"
 	"os"
-	"path/filepath"
 	"strconv"
 	"time"
 
 	"github.com/MaaXYZ/maa-framework-go/v3"
 	"github.com/rs/zerolog/log"
-)
-
-// UltimateSkillRecognition detects which character has an ultimate ready
+) // UltimateSkillRecognition detects which character has an ultimate ready
+// UltimateSkillRecognition 检测哪个角色的终结技已就绪
 // 终结技识别：检测顶部提示图标是否与下方终结技图标匹配，并识别对应按键
 type UltimateSkillRecognition struct{}
 
 // UltRecognitionParams defines the structure for custom parameters
+// UltRecognitionParams 定义自定义参数的结构
 type UltRecognitionParams struct {
 	TopROI    []int   `json:"top_roi"`
 	SkillROI  []int   `json:"skill_roi"`
@@ -29,8 +27,10 @@ type UltRecognitionParams struct {
 }
 
 // Run implements the custom recognition logic
+// Run 实现自定义识别逻辑
 func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognitionArg) (*maa.CustomRecognitionResult, bool) {
 	// 1. Parse Parameters from Pipeline JSON
+	// 1. 解析流水线 JSON 中的参数
 	var params UltRecognitionParams
 	if err := json.Unmarshal([]byte(arg.CustomRecognitionParam), &params); err != nil {
 		log.Error().Err(err).Msg("Failed to parse custom recognition params")
@@ -38,16 +38,19 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	}
 
 	// Validate essential parameters
+	// 验证必要参数
 	if len(params.SkillROI) < 4 || len(params.UltROIs) == 0 {
 		log.Error().Msg("Invalid recognition parameters: missing ROI definitions")
 		return nil, false
 	}
 
 	// Default threshold if not set
+	// 设置默认阈值
 	if params.Threshold == 0 {
 		params.Threshold = 0.1
 	}
 	// Normalize threshold if > 1.0
+	// 归一化阈值
 	if params.Threshold > 1.0 {
 		params.Threshold = params.Threshold / 100.0
 	}
@@ -58,6 +61,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	}
 
 	// Helper interface for cropping
+	// 辅助接口：裁剪
 	type SubImager interface {
 		SubImage(r image.Rectangle) image.Image
 	}
@@ -68,6 +72,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	}
 
 	// Simple Box-Sampling Resize function (Better for downscaling)
+	// 简单的盒采样缩放函数（更适合缩小）
 	resizeImg := func(src image.Image, newW, newH int) image.Image {
 		dst := image.NewRGBA(image.Rect(0, 0, newW, newH))
 		bounds := src.Bounds()
@@ -80,6 +85,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 		for y := 0; y < newH; y++ {
 			for x := 0; x < newW; x++ {
 				// Average pixel values in the source rectangle
+				// 计算源矩形内的平均像素值
 				var r, g, b, a, count uint64
 				srcStartX := int(float64(x) * xRatio)
 				srcStartY := int(float64(y) * yRatio)
@@ -87,6 +93,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 				srcEndY := int(float64(y+1) * yRatio)
 
 				// Clamp
+				// 限制范围
 				if srcEndX > srcW {
 					srcEndX = srcW
 				}
@@ -95,6 +102,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 				}
 
 				// If ratios are small (upscaling or small downscaling), ensure at least one pixel is read
+				// 如果比例很小（放大或轻微缩小），确保至少读取一个像素
 				if srcEndX <= srcStartX {
 					srcEndX = srcStartX + 1
 				}
@@ -127,17 +135,19 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	}
 
 	// 2. Prepare Template from SkillROI (More precise than TopROI)
+	// 2. 从 SkillROI 准备模板（比 TopROI 更精确）
 	// Function to crop, RESIZE and save template to a file in resource/image directory
-	createTempTemplate := func(roi []int) (string, string, error) {
+	// 裁剪、缩放并保存模板到 resource/image 目录的函数
+	createTempTemplate := func(roi []int) (string, error) {
 		if len(roi) < 4 {
-			return "", "", os.ErrInvalid
+			return "", os.ErrInvalid
 		}
 		rect := image.Rect(roi[0], roi[1], roi[0]+roi[2], roi[1]+roi[3])
 		if !rect.In(img.Bounds()) {
 			rect = rect.Intersect(img.Bounds())
 		}
 		if rect.Empty() {
-			return "", "", os.ErrInvalid
+			return "", os.ErrInvalid
 		}
 
 		cropImg := subImager.SubImage(rect)
@@ -145,52 +155,39 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 		// RESIZE: Scale down the 28x28 skill icon.
 		// Previous attempt 20x20 might be too small.
 		// Let's try 24x24 as well to be consistent with recognition.go
+		// 缩放：缩小 28x28 的技能图标。
+		// 之前的尝试 20x20 可能太小了。
+		// 让我们尝试 24x24，以便与 recognition.go 保持一致。
 		resizedImg := resizeImg(cropImg, 24, 24)
 
-		// Use a relative path within resource/image
-		relDir := "AutomaticCharacterTutorial"
-		// Use unique filename to avoid caching issues
-		fileName := fmt.Sprintf("ultimate_template_%d.png", time.Now().UnixNano())
-		relPath := relDir + "/" + fileName
-
-		// Full path for writing the file
-		absDir := filepath.Join("resource", "image", relDir)
-		if err := os.MkdirAll(absDir, 0755); err != nil {
-			return "", "", err
+		// Use unique key for in-memory image
+		templateKey := fmt.Sprintf("UltimateMatchTemplate_%d", time.Now().UnixNano())
+		// Note: In current SDK version, OverrideImage returns bool, not error.
+		// Adapting to current SDK while implementing the logic.
+		if !ctx.OverrideImage(templateKey, resizedImg) {
+			return "", fmt.Errorf("failed to override image")
 		}
-
-		fullPath := filepath.Join(absDir, fileName)
-		f, err := os.Create(fullPath)
-		if err != nil {
-			return "", "", err
-		}
-		defer f.Close()
-
-		if err := png.Encode(f, resizedImg); err != nil {
-			return "", "", err
-		}
-
-		return relPath, fullPath, nil
+		return templateKey, nil
 	}
 
 	// Try to get template from SkillROI (Primary) or TopROI (Fallback)
+	// 尝试从 SkillROI 获取模板（主要），或者从 TopROI 获取（回退）
 	log.Debug().Ints("SkillROI", params.SkillROI).Msg("Capturing ultimate template from SkillROI")
-	templatePath, fullTemplatePath, err := createTempTemplate(params.SkillROI)
+	templatePath, err := createTempTemplate(params.SkillROI)
 	if err != nil {
 		log.Warn().Err(err).Msg("Failed to create ultimate template from SkillROI, trying TopROI")
 		// Only try TopROI if it is valid
 		if len(params.TopROI) >= 4 {
-			templatePath, fullTemplatePath, err = createTempTemplate(params.TopROI)
+			templatePath, err = createTempTemplate(params.TopROI)
 		}
 		if err != nil {
 			log.Error().Err(err).Msg("Failed to create ultimate template")
 			return nil, false
 		}
 	}
-	// Clean up the template file after recognition is done
-	defer os.Remove(fullTemplatePath)
 
 	// 3. Match Template against UltROIs
+	// 3. 匹配模板与 UltROIs
 	bestIdx := -1
 	maxScore := -1.0
 
@@ -247,6 +244,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	}
 
 	// Check if the best match is good enough
+	// 检查最佳匹配是否足够好
 	if maxScore < params.Threshold {
 		log.Info().Float64("maxScore", maxScore).Msg("No matching ultimate icon found")
 		return nil, false
@@ -255,6 +253,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	log.Info().Int("bestIdx", bestIdx).Float64("score", maxScore).Msg("Ultimate matched")
 
 	// 4. Identify Key Number using Template Match (1.png - 4.png)
+	// 4. 使用模板匹配识别按键数字（1.png - 4.png）
 	keyNum := -1
 	if bestIdx >= 0 && bestIdx < len(params.KeyROIs) {
 		baseKeyROI := params.KeyROIs[bestIdx]
@@ -308,6 +307,7 @@ func (r *UltimateSkillRecognition) Run(ctx *maa.Context, arg *maa.CustomRecognit
 	}
 
 	// 5. Return Result
+	// 5. 返回结果
 	detailBytes, _ := json.Marshal(map[string]any{
 		"index":   bestIdx,
 		"score":   maxScore,
