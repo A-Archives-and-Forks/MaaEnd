@@ -154,7 +154,8 @@ func (m *MapLocator) Locate(ctx *maa.Context, minimap image.Image) (*MapPosition
 				// ProbeStep=4 (采样步进，即只用 25% 的特征点)
 				localX, localY, coarseAvgDiff := MatchProbe(searchImg, m.sharedProbe, 2, 4, true)
 
-				const trackingMaxDiff = 50.0
+				// 追踪阈值
+				const trackingMaxDiff = 70.0
 				if coarseAvgDiff < trackingMaxDiff {
 					finalX := searchRect.Min.X + localX
 					finalY := searchRect.Min.Y + localY
@@ -207,43 +208,86 @@ func (m *MapLocator) Locate(ctx *maa.Context, minimap image.Image) (*MapPosition
 	// ---------------------------------------------------------
 
 	type raceResult struct {
-		ZoneID  string
-		X, Y    int
-		AvgDiff float64
+		ZoneID        string
+		X, Y          int
+		AvgDiff       float64 // 原始平均差异
+		WeightedDiff  float64 // 边缘加权差异（策略1）
+		Consistency   float64 // 局部一致性（策略2）
+		HistDist      float64 // 直方图距离
+		CombinedScore float64 // 最终组合分数
 	}
+
+	// Stage 1: 计算小地图的颜色直方图
+	probeHist := ComputeHistogramFromProbe(m.sharedProbe)
 
 	resultsCh := make(chan raceResult, len(m.zones))
 	var wg sync.WaitGroup
 
-	// Global Params: Step=4, ProbeStep=10
-	coarseStep := 4
-	coarseProbeStep := 10
+	// 优化后的参数：增大步长和采样间隔以提升速度
+	// Step=8: 物理步进
+	// ProbeStep=8: 采样步进
+	coarseStep := 8
+	coarseProbeStep := 8
+
+	// 边缘加权参数
+	const edgeGamma = 2.0
+
+	// 一致性惩罚权重
+	const consistencyAlpha = 0.2
 
 	for zID, zImg := range m.zones {
 		wg.Add(1)
 		go func(id string, img *image.RGBA) {
 			defer wg.Done()
-			bx, by, avgDiff := MatchProbe(img, m.sharedProbe, coarseStep, coarseProbeStep, false)
-			resultsCh <- raceResult{ZoneID: id, X: bx, Y: by, AvgDiff: avgDiff}
+
+			// 边缘加权匹配（核心算法）
+			bx, by, weightedDiff := MatchProbeWeighted(img, m.sharedProbe, coarseStep, coarseProbeStep, false, edgeGamma)
+
+			if weightedDiff == 0 {
+				resultsCh <- raceResult{ZoneID: id, WeightedDiff: 0}
+				return
+			}
+
+			// 快速一致性检查（采样版本，只用1/4的点）
+			consistency := ComputeLocalConsistencyFast(img, m.sharedProbe, bx, by, 4)
+
+			// 直方图距离（仅用于日志，不参与评分）
+			histDist := 0.0
+			_ = probeHist // 暂时保留变量避免编译错误
+
+			// 组合评分
+			combinedScore := weightedDiff + consistency*consistencyAlpha
+
+			resultsCh <- raceResult{
+				ZoneID:        id,
+				X:             bx,
+				Y:             by,
+				AvgDiff:       weightedDiff, // 直接用 weightedDiff 作为 avgDiff
+				WeightedDiff:  weightedDiff,
+				Consistency:   consistency,
+				HistDist:      histDist,
+				CombinedScore: combinedScore,
+			}
 		}(zID, zImg)
 	}
 
 	wg.Wait()
 	close(resultsCh)
 
-	// 收集结果，过滤无效结果（AvgDiff=0 表示地图太小无法匹配）
+	// 收集结果，过滤无效结果（WeightedDiff=0 表示地图太小无法匹配）
 	allResults := []raceResult{}
 	for res := range resultsCh {
-		if res.AvgDiff > 0 {
+		if res.WeightedDiff > 0 {
 			allResults = append(allResults, res)
 		}
 	}
 
-	// 按 AvgDiff 升序排序（越小越好）
+	// 按 CombinedScore 升序排序（边缘加权 + 一致性惩罚）
 	sort.Slice(allResults, func(i, j int) bool {
-		return allResults[i].AvgDiff < allResults[j].AvgDiff
+		return allResults[i].CombinedScore < allResults[j].CombinedScore
 	})
 
+	// 输出详细的三重验证分数
 	for i, res := range allResults {
 		if i >= 5 {
 			break
@@ -251,13 +295,19 @@ func (m *MapLocator) Locate(ctx *maa.Context, minimap image.Image) (*MapPosition
 		log.Debug().
 			Int("rank", i+1).
 			Str("zone", res.ZoneID).
+			Float64("combined", res.CombinedScore).
+			Float64("weighted", res.WeightedDiff).
+			Float64("consistency", res.Consistency).
 			Float64("avgDiff", res.AvgDiff).
+			Float64("histDist", res.HistDist).
 			Int("x", res.X).
 			Int("y", res.Y).
 			Msg("[MapLocate] Global Search Rank")
 	}
 
-	// 相对置信度判断
+	// ========================================
+	// 三重验证系统 - 置信度判断
+	// ========================================
 	var winner raceResult
 	useWinner := false
 
@@ -265,23 +315,56 @@ func (m *MapLocator) Locate(ctx *maa.Context, minimap image.Image) (*MapPosition
 		rank1 := allResults[0]
 		rank2 := allResults[1]
 
-		// 绝对阈值
+		// 条件1: 绝对阈值（CombinedScore 足够低）
+		// 边缘加权后阈值需要调整，预期正确匹配分数在 28-40 范围
 		const maxAbsoluteDiff = 60.0
-		absoluteOK := rank1.AvgDiff < maxAbsoluteDiff
+		absoluteOK := rank1.CombinedScore < maxAbsoluteDiff
 
-		// 相对置信度
-		const minRelativeGap = 0.15
-		relativeGap := (rank2.AvgDiff - rank1.AvgDiff) / rank2.AvgDiff
-		relativeOK := relativeGap > minRelativeGap
+		// 条件2: 相对差距（rank1 显著优于 rank2）
+		// 边缘加权后差距应该更大，提高阈值
+		const minAbsoluteGap = 8.0
+		absoluteGap := rank2.CombinedScore - rank1.CombinedScore
+		gapOK := absoluteGap >= minAbsoluteGap
 
-		// 组合判断
-		if absoluteOK && relativeOK {
+		// 条件3: 统计置信度（Z-Score，策略3）
+		// rank1 比所有候选的平均值低 1.5 个标准差则认为可信
+		var allScores []float64
+		for _, r := range allResults {
+			allScores = append(allScores, r.CombinedScore)
+		}
+		zScore := ComputeZScore(rank1.CombinedScore, allScores)
+		const minZScore = 1.5
+		statOK := zScore > minZScore
+
+		log.Debug().
+			Float64("rank1Combined", rank1.CombinedScore).
+			Float64("rank2Combined", rank2.CombinedScore).
+			Float64("gap", absoluteGap).
+			Float64("zScore", zScore).
+			Bool("absoluteOK", absoluteOK).
+			Bool("gapOK", gapOK).
+			Bool("statOK", statOK).
+			Msg("[MapLocate] Triple Validation Check")
+
+		// 三重验证：任意两个条件满足即可，避免单一条件导致误判
+		conditionsMet := 0
+		if absoluteOK {
+			conditionsMet++
+		}
+		if gapOK {
+			conditionsMet++
+		}
+		if statOK {
+			conditionsMet++
+		}
+
+		if conditionsMet >= 2 {
 			winner = rank1
 			useWinner = true
 		}
 	} else if len(allResults) == 1 {
 		// 只有一个结果时降级为绝对阈值判断
-		if allResults[0].AvgDiff < 50.0 {
+		if allResults[0].CombinedScore < 55.0 {
 			winner = allResults[0]
 			useWinner = true
 		}
