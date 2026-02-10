@@ -8,8 +8,13 @@ import (
 	"github.com/rs/zerolog/log"
 )
 
+const (
+	unsupported = -1
+	invalid     = -2
+)
+
 // Default settings
-var Win32KeyEnum = map[string]int32{
+var win32KeyEnum = map[string]int32{
 	// General
 	"Move_W":           0x57, // W (Locked)
 	"Move_A":           0x41, // A (Locked)
@@ -35,25 +40,25 @@ var Win32KeyEnum = map[string]int32{
 	"UseTools":         0x52, // R
 	"ExpandToolsWheel": 0x52, // R (LongPress Key) (Followed "UseTools")
 	// Combat
-	"Attack":              0x01, // Left Mouse Button (Locked)
-	"LockToTarget":        0x04, // Middle Mouse Button (Locked)
-	"SwitchTarget":        -1,   // Please Use "Scroll" Action. (Locked)
-	"CastCombo":           0x45, // E
-	"OperatorSkill_1":     0x31, // 1
-	"OperatorSkill_2":     0x32, // 2
-	"OperatorSkill_3":     0x33, // 3
-	"OperatorSkill_4":     0x34, // 4
-	"OperatorUltimate_1":  0x31, // 4 (LongPress Key) (Followed "OperatorSkill_1")
-	"OperatorUltimate_2":  0x32, // 4 (LongPress Key) (Followed "OperatorSkill_2")
-	"OperatorUltimate_3":  0x33, // 4 (LongPress Key) (Followed "OperatorSkill_3")
-	"OperatorUltimate_4":  0x34, // 4 (LongPress Key) (Followed "OperatorSkill_4")
-	"SwitchOperator_1":    0x70, // F1
-	"SwitchOperator_2":    0x71, // F2
-	"SwitchOperator_3":    0x72, // F3
-	"SwitchOperator_4":    0x73, // F4
-	"SwitchOperator_Next": 0x51, // Q
+	"Attack":              0x01,        // Left Mouse Button (Locked)
+	"LockToTarget":        0x04,        // Middle Mouse Button (Locked)
+	"SwitchTarget":        unsupported, // It's unsupported, please use the "Scroll" Action. (Locked)
+	"CastCombo":           0x45,        // E
+	"OperatorSkill_1":     0x31,        // 1
+	"OperatorSkill_2":     0x32,        // 2
+	"OperatorSkill_3":     0x33,        // 3
+	"OperatorSkill_4":     0x34,        // 4
+	"OperatorUltimate_1":  0x31,        // 1 (LongPress Key) (Followed "OperatorSkill_1")
+	"OperatorUltimate_2":  0x32,        // 2 (LongPress Key) (Followed "OperatorSkill_2")
+	"OperatorUltimate_3":  0x33,        // 3 (LongPress Key) (Followed "OperatorSkill_3")
+	"OperatorUltimate_4":  0x34,        // 4 (LongPress Key) (Followed "OperatorSkill_4")
+	"SwitchOperator_1":    0x70,        // F1
+	"SwitchOperator_2":    0x71,        // F2
+	"SwitchOperator_3":    0x72,        // F3
+	"SwitchOperator_4":    0x73,        // F4
+	"SwitchOperator_Next": 0x51,        // Q
 	// AIC Factory
-	"AICFactoryPlan":        0x4C, // T
+	"AICFactoryPlan":        0x54, // T
 	"TransportBelt":         0x45, // E
 	"Pipeline":              0x51, // Q
 	"FacilityList":          0x5A, // Z
@@ -74,12 +79,12 @@ var Win32KeyEnum = map[string]int32{
 //   - -1: If the key string is unsupported.
 //   - -2: If the key string is invalid.
 func GetKeyCode(key string) int32 {
-	var keyCode, ok = Win32KeyEnum[key]
+	var keyCode, ok = win32KeyEnum[key]
 	if !ok {
 		log.Error().Msgf("Invalid key: %s", key)
-		return -2
+		return invalid
 	}
-	if keyCode == -1 {
+	if keyCode == unsupported {
 		log.Error().Msgf("Unsupported key: %s", key)
 	}
 
