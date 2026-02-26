@@ -12,6 +12,7 @@ import (
 	puzzle "github.com/MaaXYZ/MaaEnd/agent/go-service/puzzle-solver"
 	"github.com/MaaXYZ/MaaEnd/agent/go-service/realtime"
 	"github.com/MaaXYZ/MaaEnd/agent/go-service/resell"
+	"github.com/MaaXYZ/MaaEnd/agent/go-service/screenshot"
 	"github.com/rs/zerolog/log"
 )
 
@@ -26,6 +27,7 @@ func registerAll() {
 	dailyrewards.Register()
 	maptracker.Register()
 	batchaddfriends.Register()
+	screenshot.Register()
 
 	// Register aspect ratio checker (uses TaskerSink, not custom action/recognition)
 	aspectratio.Register()
