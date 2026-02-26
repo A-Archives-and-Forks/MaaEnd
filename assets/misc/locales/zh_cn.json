@@ -209,6 +209,7 @@
     "item.JincaoPowder": "锦草粉末",
     "item.CitromePowder": "柑实粉末",
     "item.BuckflowerPowder": "荞花粉末",
+    "item.YazhenSyringe": "芽针针剂",
     "option.ItemTransferOriginRegion.label": "来源区域 (起点)",
     "option.ItemTransferOriginRegion.description": "物品当前所在的仓库区域。",
     "option.ItemTransferDestinationRegion.label": "目标区域 (终点)",
