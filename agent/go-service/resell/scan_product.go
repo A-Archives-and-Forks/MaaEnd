@@ -108,7 +108,7 @@ func (a *ResellScanNextAction) Run(ctx *maa.Context, arg *maa.CustomActionArg) b
 func resellScanOverrideNext(ctx *maa.Context, currentTask string, row, col int, breakRow bool) {
 	nextRow, nextCol, done := computeNextScanPos(row, col, breakRow)
 	if done {
-		ctx.OverrideNext(currentTask, []maa.NodeNextItem{{Name: "ResellDecide"}})
+		ctx.OverrideNext(currentTask, []maa.NextItem{{Name: "ResellDecide"}})
 		return
 	}
 	_ = ctx.OverridePipeline(map[string]any{
@@ -119,7 +119,7 @@ func resellScanOverrideNext(ctx *maa.Context, currentTask string, row, col int, 
 			},
 		},
 	})
-	ctx.OverrideNext(currentTask, []maa.NodeNextItem{{Name: "ResellScan"}})
+	ctx.OverrideNext(currentTask, []maa.NextItem{{Name: "ResellScan"}})
 }
 
 func computeNextScanPos(row, col int, breakRow bool) (nextRow, nextCol int, done bool) {
