@@ -275,7 +275,10 @@
             98,
             26
         ],
-        "expected": "好友",
+        "expected": [
+            "好友",
+            "Friend"
+        ],
         "threshold": 0.8
     },
     "ResellROIDetailCostPrice": {
@@ -329,7 +332,10 @@
             140,
             30
         ],
-        "expected": "(\\d+)\\s*小时.*?[+]\\s*(\\d+)",
+        "expected": [
+            "(\\d+)\\s*小时.*?[+]\\s*(\\d+)",
+            "(\\d+)\\s*h.*?[+]\\s*(\\d+)"
+        ],
         "threshold": 0.3
     },
     "ResellROIQuotaNextAddMinutes": {
@@ -341,7 +347,10 @@
             140,
             30
         ],
-        "expected": "(\\d+)\\s*分钟.*?[+]\\s*(\\d+)",
+        "expected": [
+            "(\\d+)\\s*分钟.*?[+]\\s*(\\d+)",
+            "(\\d+)\\s*min.*?[+]\\s*(\\d+)"
+        ],
         "threshold": 0.3
     },
     "ResellROIQuotaNextAddFallback": {
@@ -365,7 +374,10 @@
             145,
             95
         ],
-        "expected": "加载中",
+        "expected": [
+            "加载中",
+            "Loading"
+        ],
         "threshold": 0.85,
         "action": "DoNothing",
         "next": [

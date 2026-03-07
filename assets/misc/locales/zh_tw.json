@@ -228,7 +228,7 @@
     "task.SeizeEntrustTaskisSwipeALL.description": "開啟此選項後會從頭到尾找一遍訂單 開啟後能在 5s 內遍歷完所有訂單才建議開啟 ~~可以用來消耗時間 ()~~",
     "task.AutoUseSpMedication.description": "自動使用一次應急理智加強劑(+40理智)",
     "task.AutoUseSpMedication.label": "💊應急理智加強劑",
-    "resource.CN.label": "官服",
+    "resource.CN.label": "通用資源（目前僅簡中支援較好）",
     "resource.Bilibili.label": "B 服",
     "resource.Global.label": "國際服 (Global/EN)",
     "controller.Win32-Window.label": "電腦端-預設",

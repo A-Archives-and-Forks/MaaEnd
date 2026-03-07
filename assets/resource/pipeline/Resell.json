@@ -36,7 +36,11 @@
             178,
             48
         ],
-        "expected": "四号谷地",
+        "expected": [
+            "四号谷地",
+            "Valley IV",
+            "Valley"
+        ],
         "threshold": 0.8,
         "pre_delay": 0,
         "action": "DoNothing",
@@ -55,7 +59,10 @@
             178,
             48
         ],
-        "expected": "武陵",
+        "expected": [
+            "武陵",
+            "Wuling"
+        ],
         "threshold": 0.8,
         "pre_delay": 0,
         "action": "DoNothing",
@@ -74,7 +81,10 @@
             178,
             48
         ],
-        "expected": "武陵",
+        "expected": [
+            "武陵",
+            "Wuling"
+        ],
         "threshold": 0.8,
         "pre_delay": 0,
         "action": "DoNothing",
@@ -111,7 +121,8 @@
             160
         ],
         "expected": [
-            "稳定需求"
+            "稳定需求",
+            "Staple"
         ],
         "threshold": 0.6,
         "action": "DoNothing",
@@ -130,7 +141,8 @@
             80
         ],
         "expected": [
-            "弹性需求"
+            "弹性需求",
+            "Elastic"
         ],
         "threshold": 0.6,
         "action": "Click",
@@ -245,7 +257,10 @@
             82,
             26
         ],
-        "expected": "无法购买",
+        "expected": [
+            "无法购买",
+            "Cannot Purchase"
+        ],
         "action": "DoNothing",
         "next": [
             "ChangeNextRegionPrepare"

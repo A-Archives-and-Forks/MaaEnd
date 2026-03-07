@@ -374,7 +374,7 @@
     "option.DailyTaskCreation.desc": "自动一次制作来刷活跃度",
     "task.AutoUseSpMedication.description": "自动使用一次应急理智加强剂(+40理智)",
     "task.AutoUseSpMedication.label": "💊应急理智加强剂",
-    "resource.CN.label": "官服",
+    "resource.CN.label": "通用资源（目前仅简中支持较好）",
     "resource.Bilibili.label": "B 服",
     "resource.Global.label": "国际服 (Global/EN)",
     "controller.Win32-Window.label": "电脑端-默认",

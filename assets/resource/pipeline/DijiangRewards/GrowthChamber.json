@@ -42,7 +42,8 @@
                     64
                 ],
                 "expected": [
-                    "培养舱"
+                    "培养舱",
+                    "Growth Chamber"
                 ]
             }
         },
@@ -559,7 +560,8 @@
                     64
                 ],
                 "expected": [
-                    "培养舱"
+                    "培养舱",
+                    "Growth Chamber"
                 ]
             }
         },
