@@ -4,7 +4,16 @@
         "recognition": "And",
         "all_of": [
             "EnvironmentMonitoringCheckOutskirtsMonitoringTerminalText"
-        ]
+        ],
+        "pre_wait_freezes": {
+            "time": 80,
+            "target": [
+                63,
+                208,
+                1158,
+                71
+            ]
+        }
     },
     "EnvironmentMonitoringCheckOutskirtsMonitoringTerminalText": {
         "desc": "检查城郊监测终端文本",
@@ -30,7 +39,10 @@
             "EnvironmentMonitoringButton",
             "InWulingRegionalDevelopment"
         ],
-        "action": "Click"
+        "action": "Click",
+        "next": [
+            "EnvironmentMonitoringInOutskirtsMonitoringTerminal"
+        ]
     },
     "EnvironmentMonitoringGoToOutskirtsMonitoringTerminal": {
         "desc": "前往城郊监测终端",
